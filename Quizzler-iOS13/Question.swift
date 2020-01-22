@@ -9,9 +9,4 @@
 struct Question {
     let description: String
     let answer: Bool
-    
-    init(description: String, answer: Bool) {
-        self.description = description
-        self.answer = answer
-    }
 }

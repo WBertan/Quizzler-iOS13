@@ -14,10 +14,6 @@ struct Game {
     var currentQuestion: Question?
     var endGame: Bool = false
     
-    init(maxProgress: Int) {
-        self.maxProgress = maxProgress
-    }
-    
     mutating func nextQuestion() -> Question? {
         if progress >= maxProgress {
             endGame = true
