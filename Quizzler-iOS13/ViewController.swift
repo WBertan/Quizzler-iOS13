@@ -15,24 +15,44 @@ class ViewController: UIViewController {
     @IBOutlet weak var trueButton: UIButton!
     @IBOutlet weak var falseButton: UIButton!
     
-    private var questions = [
-        "Four + Two is equal to Six": true,
-        "2": true,
-        "3": true,
-        "4": true,
-        "5": true,
-        "6": true
+    private let numbers = [
+        "Zero","One","Two","Three","Four","Five","Six","Seven","Eight","Nine"
     ]
-    private var question: (String, Bool)!
     
-    private var maxProgress: Int!
+    private let operations = [
+        "+": { (a: Int, b: Int) -> Int in a + b },
+        "-": { (a: Int, b: Int) -> Int in a - b },
+        "*": { (a: Int, b: Int) -> Int in a * b }
+    ]
+    
+    private let comparisons = [
+        "equal to": { (a: Int, b: Int) -> Bool in a == b },
+        "greater than": { (a: Int, b: Int) -> Bool in a > b },
+        "greater or equal than": { (a: Int, b: Int) -> Bool in a >= b },
+        "less than": { (a: Int, b: Int) -> Bool in a < b },
+        "less or equal than": { (a: Int, b: Int) -> Bool in a <= b }
+    ]
+    
+    private func generateQuestion() -> (String, Bool) {
+        let a = Int.random(in: 0...9)
+        let b = Int.random(in: 0...9)
+        let operation = operations.randomElement()!
+        let comparison = comparisons.randomElement()!
+        let realResult = operation.value(a, b)
+        let randomResult = operations.randomElement()!.value(a, b)
+        let questionResult = comparison.value(realResult, randomResult)
+        return ("\(numbers[a]) \(operation.key) \(numbers[b]) is \(comparison.key) \(randomResult)", questionResult)
+    }
+    
+    private var questions: [(String, Bool)] = []
+    
+    private var progress: Int = -1
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        maxProgress = questions.count
+        questions = (1...Int.random(in: 5...10)).map({ _ -> (String, Bool) in generateQuestion() })
         
-        updateProgress()
         randomQuestion()
     }
     
@@ -42,7 +62,7 @@ class ViewController: UIViewController {
         
         let answer = sender.currentTitle == "True"
         
-        if(answer == question!.1) {
+        if(answer == questions[progress].1) {
             sender.setTitleColor(UIColor.green, for: .disabled)
         } else {
             sender.setTitleColor(UIColor.red, for: .disabled)
@@ -54,23 +74,23 @@ class ViewController: UIViewController {
             self.trueButton.isEnabled = true
             self.falseButton.isEnabled = true
             
-            self.updateProgress()
             self.randomQuestion()
         })
     }
     
     private func randomQuestion() {
-        question = questions.popFirst()
-        if let question = question {
-            questionLabel.text = question.0
+        progress += 1
+        updateProgress()
+        if progress < questions.count {
+            questionLabel.text = questions[progress].0
         } else {
             endGame()
         }
     }
     
     private func updateProgress() {
-        let progress = Float(maxProgress - questions.count)/Float(maxProgress)
-        progressBar.setProgress(progress, animated: true)
+        let progressBarValue = Float(progress)/Float(questions.count)
+        progressBar.setProgress(progressBarValue, animated: true)
     }
     
     private func endGame() {
