@@ -10,50 +10,27 @@ import UIKit
 
 class ViewController: UIViewController {
     
+    private let questionRange = 5...10
+    private let waitingTimeInSeconds = 2.0
+    
     @IBOutlet weak var questionLabel: UILabel!
     @IBOutlet weak var progressBar: UIProgressView!
     @IBOutlet weak var trueButton: UIButton!
     @IBOutlet weak var falseButton: UIButton!
+    @IBOutlet weak var progressCurrentCount: UILabel!
+    @IBOutlet weak var progressMaxCount: UILabel!
+    @IBOutlet weak var restartButton: UIButton!
     
-    private let numbers = [
-        "Zero","One","Two","Three","Four","Five","Six","Seven","Eight","Nine"
-    ]
-    
-    private let operations = [
-        "+": { (a: Int, b: Int) -> Int in a + b },
-        "-": { (a: Int, b: Int) -> Int in a - b },
-        "*": { (a: Int, b: Int) -> Int in a * b }
-    ]
-    
-    private let comparisons = [
-        "equal to": { (a: Int, b: Int) -> Bool in a == b },
-        "greater than": { (a: Int, b: Int) -> Bool in a > b },
-        "greater or equal than": { (a: Int, b: Int) -> Bool in a >= b },
-        "less than": { (a: Int, b: Int) -> Bool in a < b },
-        "less or equal than": { (a: Int, b: Int) -> Bool in a <= b }
-    ]
-    
-    private func generateQuestion() -> (String, Bool) {
-        let a = Int.random(in: 0...9)
-        let b = Int.random(in: 0...9)
-        let operation = operations.randomElement()!
-        let comparison = comparisons.randomElement()!
-        let realResult = operation.value(a, b)
-        let randomResult = operations.randomElement()!.value(a, b)
-        let questionResult = comparison.value(realResult, randomResult)
-        return ("\(numbers[a]) \(operation.key) \(numbers[b]) is \(comparison.key) \(randomResult)", questionResult)
-    }
-    
-    private var questions: [(String, Bool)] = []
-    
-    private var progress: Int = -1
+    private var game: Game!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        questions = (1...Int.random(in: 5...10)).map({ _ -> (String, Bool) in generateQuestion() })
-        
-        randomQuestion()
+        startGame()
+    }
+    
+    @IBAction func restartButtonPressed(_ sender: UIButton) {
+        startGame()
     }
     
     @IBAction func answerButtonPressed(_ sender: UIButton) {
@@ -61,14 +38,15 @@ class ViewController: UIViewController {
         falseButton.isEnabled = false
         
         let answer = sender.currentTitle == "True"
+        let correctAnswer = game.currentQuestion?.answer
         
-        if(answer == questions[progress].1) {
+        if(answer == correctAnswer) {
             sender.setTitleColor(UIColor.green, for: .disabled)
         } else {
             sender.setTitleColor(UIColor.red, for: .disabled)
         }
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: {
+        DispatchQueue.main.asyncAfter(deadline: .now() + waitingTimeInSeconds, execute: {
             sender.setTitleColor(UIColor.white, for: .disabled)
             
             self.trueButton.isEnabled = true
@@ -79,23 +57,35 @@ class ViewController: UIViewController {
     }
     
     private func randomQuestion() {
-        progress += 1
-        updateProgress()
-        if progress < questions.count {
-            questionLabel.text = questions[progress].0
+        if let question = game.nextQuestion() {
+            showQuestion(question)
         } else {
             endGame()
         }
+        updateProgress()
+    }
+    
+    private func showQuestion(_ question: Question) {
+        questionLabel.text = question.description
     }
     
     private func updateProgress() {
-        let progressBarValue = Float(progress)/Float(questions.count)
-        progressBar.setProgress(progressBarValue, animated: true)
+        progressBar.setProgress(game.progressPerc(), animated: true)
+        progressCurrentCount.text = "\(game.progress)"
+        progressMaxCount.text = "\(game.maxProgress)"
+    }
+    
+    private func startGame() {
+        restartButton.isHidden = true
+        trueButton.isHidden = false
+        falseButton.isHidden = false
+        
+        game = Game(maxProgress: Int.random(in: questionRange))
+        randomQuestion()
     }
     
     private func endGame() {
-        updateProgress()
-        
+        restartButton.isHidden = false
         trueButton.isHidden = true
         falseButton.isHidden = true
         
