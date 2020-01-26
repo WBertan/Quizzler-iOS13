@@ -26,10 +26,9 @@ struct Game {
         }
     }
     
-    mutating func checkAnswer(userOption: String) -> Bool {
-        let userAnswer = userOption == "True"
+    mutating func checkAnswer(userAnswer: String) -> Bool {
         let correctAnswer = currentQuestion?.answer
-        let isUserRight = userAnswer == correctAnswer
+        let isUserRight = userAnswer.caseInsensitiveCompare(correctAnswer!) == .orderedSame
         if isUserRight {
             score += 1
         }
@@ -60,6 +59,10 @@ struct Game {
     ]
     
     private func generateQuestion() -> Question {
+        return Bool.random() ? generateBoolOptions() : generateMultiOptions(quantity: 3)
+    }
+    
+    func generateBoolOptions() -> Question {
         let a = Int.random(in: 0...9)
         let b = Int.random(in: 0...9)
         let operation = operations.randomElement()!
@@ -67,9 +70,30 @@ struct Game {
         let realResult = operation.value(a, b)
         let randomResult = operations.randomElement()!.value(a, b)
         let questionResult = comparison.value(realResult, randomResult)
+        let questionOptions = ["True", "False"]
+        
         return Question(
             description: "\(numbers[a]) \(operation.key) \(numbers[b]) is \(comparison.key) \(randomResult)",
-            answer: questionResult
+            answer: "\(questionResult)",
+            options: questionOptions
         )
     }
+    func generateMultiOptions(quantity: Int) -> Question {
+        let a = Int.random(in: 0...9)
+        let b = Int.random(in: 0...9)
+        let shuffledOperations = operations.shuffled()
+        let operation = shuffledOperations.first!
+        let realResult = "\(operation.value(a, b))"
+        var questionOptions = shuffledOperations.dropFirst().prefix(quantity - 1).map { (function) -> String in
+            "\(function.value(a, b))"
+        }
+        questionOptions.append(realResult)
+        
+        return Question(
+            description: "\(numbers[a]) \(operation.key) \(numbers[b]) is:",
+            answer: realResult,
+            options: questionOptions.shuffled()
+        )
+    }
+    
 }

@@ -8,5 +8,6 @@
 
 struct Question {
     let description: String
-    let answer: Bool
+    let answer: String
+    let options: [String]
 }

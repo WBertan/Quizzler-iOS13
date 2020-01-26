@@ -15,16 +15,23 @@ class ViewController: UIViewController {
     
     @IBOutlet weak var questionLabel: UILabel!
     @IBOutlet weak var progressBar: UIProgressView!
-    @IBOutlet weak var trueButton: UIButton!
-    @IBOutlet weak var falseButton: UIButton!
+    @IBOutlet weak var optionAButton: UIButton!
+    @IBOutlet weak var optionBButton: UIButton!
+    @IBOutlet weak var optionCButton: UIButton!
     @IBOutlet weak var progressCurrentCount: UILabel!
     @IBOutlet weak var progressMaxCount: UILabel!
     @IBOutlet weak var restartButton: UIButton!
+    
+    private var optionButtons: [UIButton] = []
     
     private var game: Game!
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        optionButtons.append(optionAButton)
+        optionButtons.append(optionBButton)
+        optionButtons.append(optionCButton)
         
         startGame()
     }
@@ -34,23 +41,18 @@ class ViewController: UIViewController {
     }
     
     @IBAction func answerButtonPressed(_ sender: UIButton) {
-        trueButton.isEnabled = false
-        falseButton.isEnabled = false
+        disableButtons()
         
-        let isUserRight = game.checkAnswer(userOption: sender.currentTitle!)
+        let isUserRight = game.checkAnswer(userAnswer: sender.currentTitle!)
         
         if(isUserRight) {
-            sender.setTitleColor(UIColor.green, for: .disabled)
+            sender.setTitleColor(UIColor.green, for: .normal)
         } else {
-            sender.setTitleColor(UIColor.red, for: .disabled)
+            sender.setTitleColor(UIColor.red, for: .normal)
         }
         
         DispatchQueue.main.asyncAfter(deadline: .now() + waitingTimeInSeconds, execute: {
-            sender.setTitleColor(UIColor.white, for: .disabled)
-            
-            self.trueButton.isEnabled = true
-            self.falseButton.isEnabled = true
-            
+            self.enableButtons()
             self.randomQuestion()
         })
     }
@@ -66,6 +68,10 @@ class ViewController: UIViewController {
     
     private func showQuestion(_ question: Question) {
         questionLabel.text = question.description
+        hideButtons()
+        for (button, option) in zip(optionButtons, question.options) {
+            show(button: button, withLabel: option)
+        }
     }
     
     private func updateProgress() {
@@ -76,8 +82,7 @@ class ViewController: UIViewController {
     
     private func startGame() {
         restartButton.isHidden = true
-        trueButton.isHidden = false
-        falseButton.isHidden = false
+        showButtons()
         
         game = Game(maxProgress: Int.random(in: questionRange))
         randomQuestion()
@@ -85,10 +90,39 @@ class ViewController: UIViewController {
     
     private func endGame() {
         restartButton.isHidden = false
-        trueButton.isHidden = true
-        falseButton.isHidden = true
+        hideButtons()
         
         questionLabel.text = "No more questions!\nYour score: \(game.score)"
+    }
+    
+    private func disableButtons() {
+        optionButtons.forEach { (button) in
+            button.isEnabled = false
+        }
+    }
+    
+    private func enableButtons() {
+        optionButtons.forEach { (button) in
+            button.setTitleColor(UIColor.white, for: .normal)
+            button.isEnabled = true
+        }
+    }
+    
+    private func hideButtons() {
+        optionButtons.forEach { (button) in
+            button.isHidden = true
+        }
+    }
+    
+    private func showButtons() {
+        optionButtons.forEach { (button) in
+            button.isHidden = false
+        }
+    }
+    
+    private func show(button: UIButton, withLabel title: String) {
+        button.setTitle(title, for: .normal)
+        button.isHidden = false
     }
     
 }
