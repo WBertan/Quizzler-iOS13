@@ -13,6 +13,7 @@ struct Game {
     var progress: Int = -1
     var currentQuestion: Question?
     var endGame: Bool = false
+    var score: Int = 0
     
     mutating func nextQuestion() -> Question? {
         if progress >= maxProgress {
@@ -23,6 +24,16 @@ struct Game {
             currentQuestion = generateQuestion()
             return currentQuestion
         }
+    }
+    
+    mutating func checkAnswer(userOption: String) -> Bool {
+        let userAnswer = userOption == "True"
+        let correctAnswer = currentQuestion?.answer
+        let isUserRight = userAnswer == correctAnswer
+        if isUserRight {
+            score += 1
+        }
+        return isUserRight
     }
     
     func progressPerc() -> Float {

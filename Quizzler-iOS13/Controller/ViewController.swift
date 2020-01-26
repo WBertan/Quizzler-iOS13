@@ -37,10 +37,9 @@ class ViewController: UIViewController {
         trueButton.isEnabled = false
         falseButton.isEnabled = false
         
-        let answer = sender.currentTitle == "True"
-        let correctAnswer = game.currentQuestion?.answer
+        let isUserRight = game.checkAnswer(userOption: sender.currentTitle!)
         
-        if(answer == correctAnswer) {
+        if(isUserRight) {
             sender.setTitleColor(UIColor.green, for: .disabled)
         } else {
             sender.setTitleColor(UIColor.red, for: .disabled)
@@ -89,7 +88,7 @@ class ViewController: UIViewController {
         trueButton.isHidden = true
         falseButton.isHidden = true
         
-        questionLabel.text = "No more questions!"
+        questionLabel.text = "No more questions!\nYour score: \(game.score)"
     }
     
 }
