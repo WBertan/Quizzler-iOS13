@@ -36,7 +36,6 @@ struct Game {
     }
     
     func progressPerc() -> Float {
-        print(progress)
         return endGame ? 1.0 : Float(progress)/Float(maxProgress + 1)
     }
     
